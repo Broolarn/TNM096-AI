@@ -1,4 +1,4 @@
 ﻿  tnm096-lab1.cpp
-c:\users\lmr\documents\github\tnm096-ai\tnm096-lab1\tnm096-lab1\tnm096-lab1.cpp(138): warning C4018: '<': signed/unsigned mismatch
-c:\users\lmr\documents\github\tnm096-ai\tnm096-lab1\tnm096-lab1\tnm096-lab1.cpp(185): warning C4018: '<': signed/unsigned mismatch
+c:\users\lmr\documents\github\tnm096-ai\tnm096-lab1\tnm096-lab1\tnm096-lab1.cpp(141): warning C4018: '<': signed/unsigned mismatch
+c:\users\lmr\documents\github\tnm096-ai\tnm096-lab1\tnm096-lab1\tnm096-lab1.cpp(205): warning C4018: '<': signed/unsigned mismatch
   tnm096-lab1.vcxproj -> C:\Users\LMR\Documents\GitHub\TNM096-AI\tnm096-lab1\Debug\tnm096-lab1.exe
