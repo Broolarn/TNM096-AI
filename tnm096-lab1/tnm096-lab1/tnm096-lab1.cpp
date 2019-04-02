@@ -12,8 +12,8 @@
 const int EmptySlot = 0;
 
 //const int startState[3][3] = { { 1,EmptySlot,2 }, { 4,5,3 }, {7,8,6} }; // 3 moves
-//const int startState[3][3] = { { 1,3,2 }, { 4,6,5 }, {7,EmptySlot,8} };
-const int startState[3][3] = { { 6,4,7 }, { 8,5,EmptySlot }, {3,2,1} };
+const int startState[3][3] = { { 1,3,2 }, { 4,6,5 }, {7,EmptySlot,8} };
+//const int startState[3][3] = { { 6,4,7 }, { 8,5,EmptySlot }, {3,2,1} };
 // unsolvable const int startState[3][3] = { { 8,1,2}, { EmptySlot,4,3 }, {7,6,5} };
 const int endState[3][3] = { { 1,2,3 }, { 4,5,6 }, {7,8,EmptySlot} };
 
@@ -158,11 +158,11 @@ void setupPuzzle(Puzzle& p, const int state[3][3], Puzzle& endStatePuzzle) {
 // 
 bool puzzleSorth1(PuzzleNode & lhs, PuzzleNode& rhs)
 {//We need to overload "<" to put our struct into a set
-	return lhs.puzzle.h1 < rhs.puzzle.h1;
+	return lhs.puzzle.h1 > rhs.puzzle.h1;
 }
 bool puzzleSorth2(PuzzleNode & lhs, PuzzleNode& rhs)
 {//We need to overload "<" to put our struct into a set
-	return lhs.puzzle.h2 < rhs.puzzle.h2;
+	return lhs.puzzle.h2 > rhs.puzzle.h2;
 }
 // check if it exist in our vector of puzzles(because equal slides means later added is optimal)
 bool puzzleExists(Puzzle& currentPuzzle, std::vector<PuzzleNode>& currentNode)
@@ -199,7 +199,7 @@ int traversetree(PuzzleNode pN) {
 
 }
 
-bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, PuzzleNode tempP, int i, std::pair<int, int> futurePos, Puzzle& goal)
+bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, PuzzleNode tempP, int i, std::pair<int, int> futurePos, Puzzle& goal, PuzzleNode& answer)
 {
 	Puzzle tempCP = createNextPuzzle(tempP.puzzle, futurePos, goal, traversetree(tempP));
 
@@ -208,6 +208,8 @@ bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, 
 		PuzzleNode* tempCPPtr = new PuzzleNode(closed.back());
 		PuzzleNode newNode = { tempCP,tempCPPtr };
 		open.push_back(newNode);
+		std::push_heap(open.begin(), open.end(), puzzleSorth2);
+		answer = newNode;
 		//std::cout << tempCP;
 		return true;
 	}
@@ -220,6 +222,7 @@ bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, 
 	//	std::cout << tempCP;
 
 		open.push_back(newNode);
+		std::push_heap(open.begin(), open.end(), puzzleSorth2);
 	}
 
 	return false;
@@ -232,23 +235,6 @@ int main()
 {
 	Puzzle myPuzzle;
 	Puzzle endStatePuzzle;
-	std::vector<int> randomOrder = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-	std::srand(unsigned(std::time(0)));
-	// using built-in random generator:
-	std::random_shuffle(randomOrder.begin(), randomOrder.end());
-	// using myrandom:
-	std::random_shuffle(randomOrder.begin(), randomOrder.end(), myrandom);
-	int randcount = 0;
-	int randState[3][3];
-	for (int j = 0; j < 3; j++) {
-		for (int i = 0; i < 3; i++)
-		{
-			randState[j][i] = randomOrder[randcount];
-			randcount++;
-		}
-	}
-
-
 	setupPuzzle(endStatePuzzle, endState, endStatePuzzle);
 	setupPuzzle(myPuzzle, startState, endStatePuzzle);// startState 
 
@@ -263,54 +249,58 @@ int main()
 	else {
 		int counter = 0;
 		PuzzleNode root = { myPuzzle,nullptr};
+		std::make_heap(open.begin(), open.end(), puzzleSorth2);
 		open.push_back(root);
-
+		std::push_heap(open.begin(), open.end(), puzzleSorth2);
+		PuzzleNode answer;
 		//loop that solves it
 		while (!open.empty() && !isSame(open.front().puzzle, endStatePuzzle) )
 		{
-
 			PuzzleNode tempNode = open.front();
 
 			Puzzle tempPuzzle = open.front().puzzle;
 			closed.push_back(open.front());
-			open.erase(open.begin());
+			std::pop_heap(open.begin(), open.end(), puzzleSorth2);
+			open.pop_back();
 			std::pair<int, int> emptyLocation = tempPuzzle.emptyslot;
 
 			bool completed = false;
 			//check all possible moves
 			if (Bup(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first - 1, emptyLocation.second), endStatePuzzle);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first - 1, emptyLocation.second), endStatePuzzle, answer);
 				if (completed == true)
 					break;
 			}
 
 			if (Bright(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second + 1), endStatePuzzle);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second + 1), endStatePuzzle, answer);
 				if (completed == true)
 					break;
 			}
 
 			if (Bdown(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first + 1, emptyLocation.second), endStatePuzzle);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first + 1, emptyLocation.second), endStatePuzzle, answer);
 				if (completed == true)
 					break;
 			}
 
 			if (Bleft(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second - 1), endStatePuzzle);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second - 1), endStatePuzzle, answer);
 				if (completed == true)
 					break;
 			}
 			if (completed == false)
 			{
-				if(sortingh1 == true)
-					std::sort(open.begin(), open.end(), puzzleSorth1);
-				else
-					std::sort(open.begin(), open.end(), puzzleSorth2);
+				
+
+			//	if(sortingh1 == true)
+				
+			//	else
+			//		std::sort(open.begin(), open.end(), puzzleSorth2);
 			}
 				
 			counter++;
@@ -318,18 +308,17 @@ int main()
 		}
 
 
-
+		//std::sort_heap(open.begin(), open.end(), puzzleSorth2);
 		
 		std::vector<Puzzle> printvector;
 		std::vector<std::pair<int,int>> dirrvec;
 		int numberOfMoves = 0;
 		std::cout << "found solution" << std::endl;
 		
-		PuzzleNode traverseNode = open.back();
+		PuzzleNode traverseNode = answer;
 		PuzzleNode* parentpointer = traverseNode.parent;
 		while (parentpointer != nullptr)
 		{
-
 			numberOfMoves++;
 			dirrvec.insert(dirrvec.begin(), traverseNode.puzzle.emptyslot);
 			printvector.insert(printvector.begin(),traverseNode.puzzle);
@@ -365,7 +354,7 @@ int main()
 		}
 			
 
-		std::cout << "numberofmoves : " << numberOfMoves;
+		std::cout << "Number of moves: " << numberOfMoves;
 	}
 
 
