@@ -199,7 +199,7 @@ int traversetree(PuzzleNode pN) {
 
 }
 
-bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, PuzzleNode tempP, int i, std::pair<int, int> futurePos, Puzzle& goal, PuzzleNode& answer)
+bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, PuzzleNode tempP, int i, std::pair<int, int> futurePos, Puzzle& goal, PuzzleNode& answer, bool sorting)
 {
 	Puzzle tempCP = createNextPuzzle(tempP.puzzle, futurePos, goal, traversetree(tempP));
 
@@ -208,7 +208,11 @@ bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, 
 		PuzzleNode* tempCPPtr = new PuzzleNode(closed.back());
 		PuzzleNode newNode = { tempCP,tempCPPtr };
 		open.push_back(newNode);
-		std::push_heap(open.begin(), open.end(), puzzleSorth2);
+		if (sorting == true)
+			std::push_heap(open.begin(), open.end(), puzzleSorth1);
+		else
+			std::push_heap(open.begin(), open.end(), puzzleSorth2);
+
 		answer = newNode;
 		//std::cout << tempCP;
 		return true;
@@ -222,7 +226,10 @@ bool solvePuzzle(std::vector<PuzzleNode>& open, std::vector<PuzzleNode> closed, 
 	//	std::cout << tempCP;
 
 		open.push_back(newNode);
-		std::push_heap(open.begin(), open.end(), puzzleSorth2);
+		if (sorting == true)
+			std::push_heap(open.begin(), open.end(), puzzleSorth1);
+		else
+			std::push_heap(open.begin(), open.end(), puzzleSorth2);
 	}
 
 	return false;
@@ -249,9 +256,20 @@ int main()
 	else {
 		int counter = 0;
 		PuzzleNode root = { myPuzzle,nullptr};
-		std::make_heap(open.begin(), open.end(), puzzleSorth2);
-		open.push_back(root);
-		std::push_heap(open.begin(), open.end(), puzzleSorth2);
+		if (sortingh1 == true)
+		{
+			std::make_heap(open.begin(), open.end(), puzzleSorth1);
+			open.push_back(root);
+			std::push_heap(open.begin(), open.end(), puzzleSorth1);
+		}
+
+		else
+		{
+			std::make_heap(open.begin(), open.end(), puzzleSorth2);
+			open.push_back(root);
+			std::push_heap(open.begin(), open.end(), puzzleSorth2);
+		}
+		
 		PuzzleNode answer;
 		//loop that solves it
 		while (!open.empty() && !isSame(open.front().puzzle, endStatePuzzle) )
@@ -260,7 +278,11 @@ int main()
 
 			Puzzle tempPuzzle = open.front().puzzle;
 			closed.push_back(open.front());
-			std::pop_heap(open.begin(), open.end(), puzzleSorth2);
+			if (sortingh1 == true)
+				std::pop_heap(open.begin(), open.end(), puzzleSorth1);
+			else
+				std::pop_heap(open.begin(), open.end(), puzzleSorth2);
+
 			open.pop_back();
 			std::pair<int, int> emptyLocation = tempPuzzle.emptyslot;
 
@@ -268,41 +290,31 @@ int main()
 			//check all possible moves
 			if (Bup(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first - 1, emptyLocation.second), endStatePuzzle, answer);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first - 1, emptyLocation.second), endStatePuzzle, answer, sortingh1);
 				if (completed == true)
 					break;
 			}
 
 			if (Bright(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second + 1), endStatePuzzle, answer);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second + 1), endStatePuzzle, answer, sortingh1);
 				if (completed == true)
 					break;
 			}
 
 			if (Bdown(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first + 1, emptyLocation.second), endStatePuzzle, answer);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first + 1, emptyLocation.second), endStatePuzzle, answer, sortingh1);
 				if (completed == true)
 					break;
 			}
 
 			if (Bleft(tempPuzzle))
 			{
-				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second - 1), endStatePuzzle, answer);
+				completed = solvePuzzle(open, closed, tempNode, counter, std::make_pair(emptyLocation.first, emptyLocation.second - 1), endStatePuzzle, answer, sortingh1);
 				if (completed == true)
 					break;
-			}
-			if (completed == false)
-			{
-				
-
-			//	if(sortingh1 == true)
-				
-			//	else
-			//		std::sort(open.begin(), open.end(), puzzleSorth2);
-			}
-				
+			}				
 			counter++;
 
 		}
